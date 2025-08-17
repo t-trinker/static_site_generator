@@ -1,8 +1,9 @@
 from textnode import TextNode, TextType
 
+
 def main():
-    node = TextNode('Text des Nodes', TextType.BOLD, 'www.google.com')
+    node = TextNode("This is a text node", TextType.BOLD, "https://www.boot.dev")
     print(node)
 
-if __name__ == "__main__":
-    main()
+
+main()
