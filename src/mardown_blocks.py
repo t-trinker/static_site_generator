@@ -14,7 +14,7 @@ class BlockType(Enum):
     ULIST = "unordered_list"
 
 
-def markdown_to_blocks(markdown):
+def markdown_to_blocks(markdown) -> list[str]:
     blocks = markdown.split("\n\n")
     filtered_blocks = []
     for block in blocks:
