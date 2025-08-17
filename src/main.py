@@ -3,6 +3,7 @@ from htmlnode import HTMLNode
 
 from os import path, listdir, mkdir, makedirs
 from shutil import copy, rmtree
+from sys import argv
 
 def delete(destdir: str) -> None:
     if not path.exists(destdir):
@@ -35,7 +36,7 @@ def extract_title(markdown: str):
             return block[2:]
     raise Exception("no title found")
     
-def generate_page(from_path: str , template_path: str , dest_path: str):
+def generate_page(basepath: str,from_path: str , template_path: str , dest_path: str):
     if not path.isfile(from_path):
         return
     
@@ -52,7 +53,11 @@ def generate_page(from_path: str , template_path: str , dest_path: str):
     
     title = extract_title(mdfile)
     
-    full_html = templatefile.replace("{{ Title }}", title).replace("{{ Content }}", content)
+    full_html = templatefile \
+        .replace("{{ Title }}", title) \
+        .replace("{{ Content }}", content) \
+        .replace('href="/', 'href="{basepath}') \
+        .replace('src="/', 'src="{basepath}')
     
     if not path.exists(path.dirname(dest_path)):
         makedirs(path.dirname(dest_path))
@@ -61,24 +66,32 @@ def generate_page(from_path: str , template_path: str , dest_path: str):
         dest.write(full_html)
         
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+def generate_pages_recursive(basepath: str, dir_path_content: str, template_path: str, dest_dir_path: str):
     content_entries = listdir(dir_path_content)
     for entry in content_entries:
         abssource = path.join(dir_path_content, entry)
         if path.isfile(abssource):
             new_dest_dir = path.join(dest_dir_path, entry.replace(".md", ".html"))
-            generate_page(abssource, template_path, new_dest_dir)
+            generate_page(basepath, abssource, template_path, new_dest_dir)
         else:
             absdestdir = path.join(dest_dir_path, entry)
             if not path.exists(absdestdir):
                 mkdir(absdestdir)
-            generate_pages_recursive(abssource, template_path, absdestdir)
+            generate_pages_recursive(basepath, abssource, template_path, absdestdir)
             
 
 def main():
-    delete("public")
-    copy_files("static", "public")
-    generate_pages_recursive("content", "template.html", "public")    
+    basepath: str = ""
+    if len(argv) < 2:
+        basepath = "/"
+    else:
+        basepath = argv[1]
+        
+    destpath = "docs"
+    
+    delete(destpath)
+    copy_files("static", destpath)
+    generate_pages_recursive(basepath, "content", "template.html", destpath)
 
 if __name__ == "__main__":
     main()
